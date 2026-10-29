@@ -2,6 +2,7 @@ declare module "node:crypto" {
     import { NonSharedBuffer } from "node:buffer";
     import { Transform, TransformOptions, Writable, WritableOptions } from "node:stream";
     import { PeerCertificate } from "node:tls";
+    import { URL } from "node:url";
     /**
      * SPKAC is a Certificate Signing Request mechanism originally implemented by
      * Netscape and was specified formally as part of HTML5's `keygen` element.
@@ -1115,6 +1116,12 @@ declare module "node:crypto" {
         asymmetricKeyType: AsymmetricKeyType;
         namedCurve?: string | undefined;
     }
+    interface UrlPrivateKeyInput {
+        key: URL;
+        passphrase?: BinaryLike | undefined;
+        encoding?: BufferEncoding | undefined;
+        properties?: string | undefined;
+    }
     interface JsonWebKeyInput {
         key: webcrypto.JsonWebKey;
         format: "jwk";
@@ -1172,7 +1179,9 @@ declare module "node:crypto" {
      * of the passphrase is limited to 1024 bytes.
      * @since v11.6.0
      */
-    function createPrivateKey(key: PrivateKeyInput | RawPrivateKeyInput | JsonWebKeyInput | BinaryLike): KeyObject;
+    function createPrivateKey(
+        key: PrivateKeyInput | RawPrivateKeyInput | UrlPrivateKeyInput | JsonWebKeyInput | BinaryLike | URL,
+    ): KeyObject;
     /**
      * Creates and returns a new key object containing a public key. If `key` is a
      * string or `Buffer`, `format` is assumed to be `'pem'`; if `key` is a `KeyObject` with type `'private'`, the public key is derived from the given private key;
@@ -1217,6 +1226,7 @@ declare module "node:crypto" {
     }
     interface SignPrivateKeyInput extends PrivateKeyInput, SigningOptions {}
     interface SignRawPrivateKeyInput extends RawPrivateKeyInput, SigningOptions {}
+    interface SignUrlPrivateKeyInput extends UrlPrivateKeyInput, SigningOptions {}
     interface SignJsonWebKeyInput extends JsonWebKeyInput, SigningOptions {}
     interface SignKeyObjectInput extends SigningOptions {
         key: KeyObject;
@@ -1321,17 +1331,21 @@ declare module "node:crypto" {
         sign(
             privateKey:
                 | KeyLike
+                | URL
                 | SignKeyObjectInput
                 | SignPrivateKeyInput
                 | SignRawPrivateKeyInput
+                | SignUrlPrivateKeyInput
                 | SignJsonWebKeyInput,
         ): NonSharedBuffer;
         sign(
             privateKey:
                 | KeyLike
+                | URL
                 | SignKeyObjectInput
                 | SignPrivateKeyInput
                 | SignRawPrivateKeyInput
+                | SignUrlPrivateKeyInput
                 | SignJsonWebKeyInput,
             outputFormat: BufferEncoding,
         ): string;
@@ -2058,6 +2072,7 @@ declare module "node:crypto" {
         encoding?: BufferEncoding | undefined;
     }
     interface PublicDecryptPrivateKeyInput extends PrivateKeyInput, PublicDecryptOptions {}
+    interface PublicDecryptUrlPrivateKeyInput extends UrlPrivateKeyInput, PublicDecryptOptions {}
     interface PublicDecryptPublicKeyInput extends PublicKeyInput, PublicDecryptOptions {}
     interface PublicDecryptJsonWebKeyInput extends JsonWebKeyInput, PublicDecryptOptions {}
     interface PublicDecryptKeyObjectInput extends PublicDecryptOptions {
@@ -2068,6 +2083,7 @@ declare module "node:crypto" {
         oaepLabel?: BinaryLike | undefined;
     }
     interface PublicEncryptPrivateKeyInput extends PrivateKeyInput, PublicEncryptOptions {}
+    interface PublicEncryptUrlPrivateKeyInput extends UrlPrivateKeyInput, PublicEncryptOptions {}
     interface PublicEncryptPublicKeyInput extends PublicKeyInput, PublicEncryptOptions {}
     interface PublicEncryptJsonWebKeyInput extends JsonWebKeyInput, PublicEncryptOptions {}
     interface PublicEncryptKeyObjectInput extends PublicEncryptOptions {
@@ -2124,8 +2140,10 @@ declare module "node:crypto" {
     function privateDecrypt(
         privateKey:
             | KeyLike
+            | URL
             | PublicEncryptKeyObjectInput
             | PublicEncryptPrivateKeyInput
+            | PublicEncryptUrlPrivateKeyInput
             | PublicEncryptJsonWebKeyInput,
         buffer: BinaryLike,
     ): NonSharedBuffer;
@@ -2140,8 +2158,10 @@ declare module "node:crypto" {
     function privateEncrypt(
         privateKey:
             | KeyLike
+            | URL
             | PublicDecryptKeyObjectInput
             | PublicDecryptPrivateKeyInput
+            | PublicDecryptUrlPrivateKeyInput
             | PublicDecryptJsonWebKeyInput,
         buffer: BinaryLike,
     ): NonSharedBuffer;
@@ -2709,12 +2729,12 @@ declare module "node:crypto" {
     function sign(
         algorithm: string | null | undefined,
         data: BinaryLike,
-        key: KeyLike | SignKeyObjectInput | SignPrivateKeyInput | SignJsonWebKeyInput,
+        key: KeyLike | URL | SignKeyObjectInput | SignPrivateKeyInput | SignUrlPrivateKeyInput | SignJsonWebKeyInput,
     ): NonSharedBuffer;
     function sign(
         algorithm: string | null | undefined,
         data: BinaryLike,
-        key: KeyLike | SignKeyObjectInput | SignPrivateKeyInput | SignJsonWebKeyInput,
+        key: KeyLike | URL | SignKeyObjectInput | SignPrivateKeyInput | SignUrlPrivateKeyInput | SignJsonWebKeyInput,
         callback: (error: Error | null, data: NonSharedBuffer) => void,
     ): void;
     /**
@@ -2772,16 +2792,16 @@ declare module "node:crypto" {
      * @since v24.7.0
      */
     function decapsulate(
-        key: KeyLike | PrivateKeyInput | RawPrivateKeyInput | JsonWebKeyInput,
+        key: KeyLike | PrivateKeyInput | RawPrivateKeyInput | UrlPrivateKeyInput | JsonWebKeyInput | URL,
         ciphertext: ArrayBufferLike | NodeJS.ArrayBufferView,
     ): NonSharedBuffer;
     function decapsulate(
-        key: KeyLike | PrivateKeyInput | RawPrivateKeyInput | JsonWebKeyInput,
+        key: KeyLike | PrivateKeyInput | RawPrivateKeyInput | UrlPrivateKeyInput | JsonWebKeyInput | URL,
         ciphertext: ArrayBufferLike | NodeJS.ArrayBufferView,
         callback: (err: Error, sharedKey: NonSharedBuffer) => void,
     ): void;
     interface DiffieHellmanOptions {
-        privateKey: KeyLike | PrivateKeyInput;
+        privateKey: KeyLike | PrivateKeyInput | UrlPrivateKeyInput | URL;
         publicKey: KeyLike | PublicKeyInput;
     }
     /**

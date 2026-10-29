@@ -482,6 +482,14 @@ declare module "node:net" {
          * platform-dependent. **Default:** `false`.
          */
         reusePort?: boolean | undefined;
+        /**
+         * Binds a Unix domain socket (or Windows named pipe) at the given path instead of a
+         * TCP endpoint. A leading `'\0'` selects the Linux abstract namespace. Mutually
+         * exclusive with `host`, `port`, `ipv6Only`, and `reusePort`; combining them throws
+         * `ERR_INVALID_ARG_VALUE`.
+         * @since v26.7.0
+         */
+        path?: string | undefined;
     }
     /**
      * Allows for the synchronous creation of a pre-bound socket, that can be passed
@@ -519,10 +527,11 @@ declare module "node:net" {
          * Returns the bound local address. When bound with `port: 0`, `port` is the
          * OS-assigned ephemeral port.
          * @since v26.4.0
-         * @returns An object with `address`, `family`, and `port` properties,
-         * as `server.address()` returns.
+         * @returns For a TCP bind, an object with `address`, `family`, and `port`
+         * properties, as `server.address()` returns. For a pipe bind, the bound path
+         * string, as `server.address()` returns for a pipe server.
          */
-        address(): AddressInfo;
+        address(): AddressInfo | string;
         /**
          * Returns the file descriptor of the bound socket. Ownership remains with the
          * `BoundSocket`, so the descriptor must not be closed by the caller. The
@@ -544,6 +553,13 @@ declare module "node:net" {
          * @since v26.4.0
          */
         [Symbol.dispose](): void;
+        /**
+         * `true` when the socket was bound with a `path` (a Unix domain socket or Windows
+         * named pipe), `false` for a TCP bind. The getter's presence on
+         * `net.BoundSocket.prototype` also serves as a capability probe for `path` support.
+         * @since v26.7.0
+         */
+        isPipe: boolean;
     }
     interface ListenOptions extends Abortable {
         backlog?: number | undefined;

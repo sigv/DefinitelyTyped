@@ -115,7 +115,7 @@ declare module "node:zlib" {
          * shares common patterns with the dictionary.
          * @since v24.6.0
          */
-        dictionary?: NodeJS.ArrayBufferView | undefined;
+        dictionary?: ArrayBuffer | NodeJS.ArrayBufferView | undefined;
         /**
          * If `true`, decompression fails when
          * input remains after the first complete compressed stream. **Default:** `false`
